@@ -1,0 +1,776 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CollabFinder - Express Add-on</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .addon-container {
+            display: flex;
+            height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #0f1419;
+            padding: 20px;
+            border-right: 1px solid #2d3748;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #007ACC, #00A3FF);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .search-section {
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1a202c;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #007ACC;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 10px;
+            background: #1a202c;
+            border: 1px solid #2d3748;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .skill-tag {
+            background: #007ACC;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .skill-tag:hover {
+            background: #0056b3;
+        }
+
+        .skill-tag.selected {
+            background: #00A3FF;
+        }
+
+        .ai-match-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #007ACC, #00A3FF);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .ai-match-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 122, 204, 0.3);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #ffffff;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: #1a202c;
+            border-radius: 6px;
+            padding: 2px;
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: #a0aec0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: #007ACC;
+            color: white;
+        }
+
+        .collaborators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .collaborator-card {
+            background: #1a202c;
+            border: 1px solid #2d3748;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .collaborator-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 122, 204, 0.15);
+            border-color: #007ACC;
+        }
+
+        .collaborator-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #007ACC, #00A3FF);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .collaborator-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .collaborator-title {
+            color: #a0aec0;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .collaborator-bio {
+            color: #cbd5e0;
+            font-size: 13px;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .collaborator-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .collaborator-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .chat-btn {
+            background: #2d3748;
+            color: #ffffff;
+        }
+
+        .chat-btn:hover {
+            background: #4a5568;
+        }
+
+        .invite-btn {
+            background: #007ACC;
+            color: white;
+        }
+
+        .invite-btn:hover {
+            background: #0056b3;
+        }
+
+        .match-score {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #00A3FF;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #2d3748;
+            border-top: 3px solid #007ACC;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .chat-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .chat-window {
+            background: #1a202c;
+            border-radius: 12px;
+            width: 500px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: #0f1419;
+            padding: 20px;
+            border-bottom: 1px solid #2d3748;
+            position: relative;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid #2d3748;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 12px;
+            background: #0f1419;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            color: #ffffff;
+            resize: none;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .message.sent {
+            background: #007ACC;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message.received {
+            background: #2d3748;
+        }
+
+        .close-chat {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #a0aec0;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="addon-container">
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">CF</div>
+                <div>
+                    <h3>CollabFinder</h3>
+                    <p style="font-size: 12px; color: #a0aec0;">Find Your Perfect Creative Partner</p>
+                </div>
+            </div>
+
+            <div class="search-section">
+                <input type="text" class="search-input" placeholder="Search collaborators..." id="searchInput">
+                
+                <div class="filter-group">
+                    <label class="filter-label">Skills Needed</label>
+                    <select class="filter-select" id="skillFilter">
+                        <option value="">All Skills</option>
+                        <option value="ui-design">UI Design</option>
+                        <option value="branding">Branding</option>
+                        <option value="illustration">Illustration</option>
+                        <option value="photography">Photography</option>
+                        <option value="copywriting">Copywriting</option>
+                        <option value="animation">Animation</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Experience Level</label>
+                    <select class="filter-select" id="experienceFilter">
+                        <option value="">Any Level</option>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="expert">Expert</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Availability</label>
+                    <select class="filter-select" id="availabilityFilter">
+                        <option value="">Any Time</option>
+                        <option value="immediate">Available Now</option>
+                        <option value="this-week">This Week</option>
+                        <option value="flexible">Flexible</option>
+                    </select>
+                </div>
+
+                <div class="skill-tags">
+                    <div class="skill-tag" data-skill="ui-design">UI Design</div>
+                    <div class="skill-tag" data-skill="branding">Branding</div>
+                    <div class="skill-tag" data-skill="illustration">Illustration</div>
+                    <div class="skill-tag" data-skill="photography">Photography</div>
+                    <div class="skill-tag" data-skill="copywriting">Copywriting</div>
+                    <div class="skill-tag" data-skill="animation">Animation</div>
+                </div>
+
+                <button class="ai-match-btn" id="aiMatchBtn">
+                    🤖 AI Smart Match
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h1>Available Collaborators</h1>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="grid">Grid</button>
+                    <button class="view-btn" data-view="list">List</button>
+                </div>
+            </div>
+
+            <div class="collaborators-grid" id="collaboratorsGrid">
+                <!-- Collaborators will be loaded here -->
+            </div>
+
+            <div class="loading" id="loadingState" style="display: none;">
+                <div class="spinner"></div>
+                <p>Finding perfect matches...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-window">
+            <div class="chat-header">
+                <h3 id="chatPartnerName">Chat with Collaborator</h3>
+                <button class="close-chat" id="closeChatBtn">×</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will appear here -->
+            </div>
+            <div class="chat-input-area">
+                <textarea class="chat-input" id="chatInput" placeholder="Type your message..." rows="2"></textarea>
+                <button class="ai-match-btn" id="sendMessageBtn" style="margin-top: 10px;">Send Message</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock collaborator data
+        const collaborators = [
+            {
+                id: 1,
+                name: "Sarah Chen",
+                title: "UI/UX Designer",
+                bio: "Passionate about creating intuitive user experiences. Specialized in mobile app design and user research.",
+                skills: ["UI Design", "UX Research", "Prototyping", "Figma"],
+                experience: "expert",
+                availability: "immediate",
+                avatar: "SC",
+                matchScore: 95
+            },
+            {
+                id: 2,
+                name: "Alex Rodriguez",
+                title: "Brand Designer",
+                bio: "Creative brand strategist with 5+ years experience. Love working on startup branding and visual identity.",
+                skills: ["Branding", "Logo Design", "Typography", "Adobe Creative Suite"],
+                experience: "intermediate",
+                availability: "this-week",
+                avatar: "AR",
+                matchScore: 88
+            },
+            {
+                id: 3,
+                name: "Maya Patel",
+                title: "Illustrator",
+                bio: "Digital illustrator specializing in character design and editorial illustrations. Available for collaborative projects.",
+                skills: ["Illustration", "Character Design", "Digital Art", "Animation"],
+                experience: "expert",
+                availability: "flexible",
+                avatar: "MP",
+                matchScore: 92
+            },
+            {
+                id: 4,
+                name: "Tom Wilson",
+                title: "Copywriter",
+                bio: "Creative copywriter with expertise in marketing campaigns and brand storytelling. Ready to collaborate!",
+                skills: ["Copywriting", "Content Strategy", "SEO", "Marketing"],
+                experience: "intermediate",
+                availability: "immediate",
+                avatar: "TW",
+                matchScore: 85
+            },
+            {
+                id: 5,
+                name: "Lisa Zhang",
+                title: "Motion Designer",
+                bio: "Animation and motion graphics specialist. Love bringing static designs to life through creative animations.",
+                skills: ["Animation", "Motion Graphics", "After Effects", "Cinema 4D"],
+                experience: "expert",
+                availability: "this-week",
+                avatar: "LZ",
+                matchScore: 90
+            },
+            {
+                id: 6,
+                name: "David Kim",
+                title: "Photographer",
+                bio: "Commercial photographer with focus on product and lifestyle photography. Always excited for new collaborations.",
+                skills: ["Photography", "Photo Editing", "Lighting", "Retouching"],
+                experience: "intermediate",
+                availability: "flexible",
+                avatar: "DK",
+                matchScore: 78
+            }
+        ];
+
+        let currentCollaborators = [...collaborators];
+        let selectedSkills = [];
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCollaborators();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Search input
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            
+            // Filter dropdowns
+            document.getElementById('skillFilter').addEventListener('change', handleFilters);
+            document.getElementById('experienceFilter').addEventListener('change', handleFilters);
+            document.getElementById('availabilityFilter').addEventListener('change', handleFilters);
+            
+            // Skill tags
+            document.querySelectorAll('.skill-tag').forEach(tag => {
+                tag.addEventListener('click', handleSkillTagClick);
+            });
+            
+            // AI Match button
+            document.getElementById('aiMatchBtn').addEventListener('click', handleAIMatch);
+            
+            // Chat functionality
+            document.getElementById('closeChatBtn').addEventListener('click', closeChatModal);
+            document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+
+        function renderCollaborators() {
+            const grid = document.getElementById('collaboratorsGrid');
+            grid.innerHTML = '';
+
+            currentCollaborators.forEach(collaborator => {
+                const card = createCollaboratorCard(collaborator);
+                grid.appendChild(card);
+            });
+        }
+
+        function createCollaboratorCard(collaborator) {
+            const card = document.createElement('div');
+            card.className = 'collaborator-card';
+            card.innerHTML = `
+                <div class="match-score">${collaborator.matchScore}% Match</div>
+                <div class="collaborator-avatar">${collaborator.avatar}</div>
+                <div class="collaborator-name">${collaborator.name}</div>
+                <div class="collaborator-title">${collaborator.title}</div>
+                <div class="collaborator-bio">${collaborator.bio}</div>
+                <div class="collaborator-skills">
+                    ${collaborator.skills.map(skill => `<div class="skill-tag">${skill}</div>`).join('')}
+                </div>
+                <div class="collaborator-actions">
+                    <button class="action-btn chat-btn" onclick="openChat(${collaborator.id})">💬 Chat</button>
+                    <button class="action-btn invite-btn" onclick="inviteCollaborator(${collaborator.id})">🤝 Invite</button>
+                </div>
+            `;
+            return card;
+        }
+
+        function handleSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            currentCollaborators = collaborators.filter(collaborator => 
+                collaborator.name.toLowerCase().includes(searchTerm) ||
+                collaborator.title.toLowerCase().includes(searchTerm) ||
+                collaborator.bio.toLowerCase().includes(searchTerm) ||
+                collaborator.skills.some(skill => skill.toLowerCase().includes(searchTerm))
+            );
+            renderCollaborators();
+        }
+
+        function handleFilters() {
+            const skillFilter = document.getElementById('skillFilter').value;
+            const experienceFilter = document.getElementById('experienceFilter').value;
+            const availabilityFilter = document.getElementById('availabilityFilter').value;
+
+            currentCollaborators = collaborators.filter(collaborator => {
+                const matchesSkill = !skillFilter || collaborator.skills.some(skill => 
+                    skill.toLowerCase().includes(skillFilter.replace('-', ' '))
+                );
+                const matchesExperience = !experienceFilter || collaborator.experience === experienceFilter;
+                const matchesAvailability = !availabilityFilter || collaborator.availability === availabilityFilter;
+                
+                return matchesSkill && matchesExperience && matchesAvailability;
+            });
+            
+            renderCollaborators();
+        }
+
+        function handleSkillTagClick(event) {
+            const skill = event.target.dataset.skill;
+            const tag = event.target;
+            
+            if (selectedSkills.includes(skill)) {
+                selectedSkills = selectedSkills.filter(s => s !== skill);
+                tag.classList.remove('selected');
+            } else {
+                selectedSkills.push(skill);
+                tag.classList.add('selected');
+            }
+            
+            filterBySelectedSkills();
+        }
+
+        function filterBySelectedSkills() {
+            if (selectedSkills.length === 0) {
+                currentCollaborators = [...collaborators];
+            } else {
+                currentCollaborators = collaborators.filter(collaborator => 
+                    selectedSkills.some(skill => 
+                        collaborator.skills.some(collabSkill => 
+                            collabSkill.toLowerCase().includes(skill.replace('-', ' '))
+                        )
+                    )
+                );
+            }
+            renderCollaborators();
+        }
+
+        function handleAIMatch() {
+            const loadingState = document.getElementById('loadingState');
+            const grid = document.getElementById('collaboratorsGrid');
+            
+            // Show loading state
+            grid.style.display = 'none';
+            loadingState.style.display = 'block';
+            
+            // Simulate AI matching process
+            setTimeout(() => {
+                // Sort by match score and show top matches
+                currentCollaborators = [...collaborators].sort((a, b) => b.matchScore - a.matchScore);
+                
+                loadingState.style.display = 'none';
+                grid.style.display = 'grid';
+                renderCollaborators();
+            }, 2000);
+        }
+
+        function openChat(collaboratorId) {
+            const collaborator = collaborators.find(c => c.id === collaboratorId);
+            document.getElementById('chatPartnerName').textContent = `Chat with ${collaborator.name}`;
+            document.getElementById('chatModal').style.display = 'flex';
+            
+            // Load sample messages
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = `
+                <div class="message received">
+                    <p>Hi! I saw your project and I'm really interested in collaborating. What kind of design work are you looking for?</p>
+                </div>
+                <div class="message sent">
+                    <p>Hi ${collaborator.name}! I'm working on a mobile app design and need help with user interface design. Are you available for a quick call to discuss?</p>
+                </div>
+                <div class="message received">
+                    <p>Absolutely! I have experience with mobile UI design. When would be a good time for you?</p>
+                </div>
+            `;
+        }
+
+        function closeChatModal() {
+            document.getElementById('chatModal').style.display = 'none';
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                const chatMessages = document.getElementById('chatMessages');
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message sent';
+                messageElement.innerHTML = `<p>${message}</p>`;
+                chatMessages.appendChild(messageElement);
+                
+                input.value = '';
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Simulate response
+                setTimeout(() => {
+                    const responseElement = document.createElement('div');
+                    responseElement.className = 'message received';
+                    responseElement.innerHTML = `<p>Thanks for your message! I'll get back to you soon.</p>`;
+                    chatMessages.appendChild(responseElement);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 1000);
+            }
+        }
+
+        function inviteCollaborator(collaboratorId) {
+            const collaborator = collaborators.find(c => c.id === collaboratorId);
+            
+            // Simulate Express integration
+            alert(`🎉 Invitation sent to ${collaborator.name}!\n\nThey will receive a notification to join your Adobe Express project. You can start collaborating once they accept.`);
+            
+            // In a real implementation, this would integrate with Express APIs
+            console.log(`Inviting ${collaborator.name} to Adobe Express project`);
+        }
+
+        // View toggle functionality
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                // View toggle logic would go here
+            });
+        });
+    </script>
+</body>
+</html> 
