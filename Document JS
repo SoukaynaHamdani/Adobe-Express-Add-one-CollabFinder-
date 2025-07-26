@@ -1,14 +1,14 @@
   // config.js
 export const config = {
     // Adobe Express Add-on Configuration
-    clientId: 'a7628635e14e4bd0a5e0fdafb0bd7869', // Your Client ID
-    pluginId: 'w77hj1l34', // Your Plugin ID
+    clientId: 'a7628635e14e4bd0a5e0fdafb0bd7869', // MY  Client ID
+    pluginId: 'w77hj1l34', // MY Plugin ID
     
     // API Configuration 
-    apiBaseUrl: 'https://your-api-domain.com/api',
+    apiBaseUrl: 'https://MY-api-domain.com/api',
     
     // Environment settings
-    environment: 'development', // 'development' or 'production'
+    environment: 'development', 
     
     // Feature flags
     features: {
