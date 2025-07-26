@@ -1,0 +1,116 @@
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CollabFinder - Express Add-on</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="addon-container">
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">CF</div>
+                <div>
+                    <h3>CollabFinder</h3>
+                    <p style="font-size: 12px; color: #a0aec0;">Find Your Perfect Creative Partner</p>
+                </div>
+            </div>
+
+            <div class="search-section">
+                <input type="text" class="search-input" placeholder="Search collaborators..." id="searchInput">
+                
+                <div class="filter-group">
+                    <label class="filter-label">Skills Needed</label>
+                    <select class="filter-select" id="skillFilter">
+                        <option value="">All Skills</option>
+                        <option value="ui-design">UI Design</option>
+                        <option value="branding">Branding</option>
+                        <option value="illustration">Illustration</option>
+                        <option value="photography">Photography</option>
+                        <option value="copywriting">Copywriting</option>
+                        <option value="animation">Animation</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Experience Level</label>
+                    <select class="filter-select" id="experienceFilter">
+                        <option value="">Any Level</option>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="expert">Expert</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Availability</label>
+                    <select class="filter-select" id="availabilityFilter">
+                        <option value="">Any Time</option>
+                        <option value="immediate">Available Now</option>
+                        <option value="this-week">This Week</option>
+                        <option value="flexible">Flexible</option>
+                    </select>
+                </div>
+
+                <div class="skill-tags">
+                    <div class="skill-tag" data-skill="ui-design">UI Design</div>
+                    <div class="skill-tag" data-skill="branding">Branding</div>
+                    <div class="skill-tag" data-skill="illustration">Illustration</div>
+                    <div class="skill-tag" data-skill="photography">Photography</div>
+                    <div class="skill-tag" data-skill="copywriting">Copywriting</div>
+                    <div class="skill-tag" data-skill="animation">Animation</div>
+                </div>
+
+                <button class="ai-match-btn" id="aiMatchBtn">
+                    🤖 AI Smart Match
+                </button>
+                <button class="ai-match-btn" onclick="showProjectsTab()">🌟 View Projects</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h1>Available Collaborators</h1>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="grid">Grid</button>
+                    <button class="view-btn" data-view="list">List</button>
+                </div>
+            </div>
+
+            <div class="collaborators-grid" id="collaboratorsGrid">
+                <!-- Collaborators will be loaded here -->
+            </div>
+
+            <div class="projects-tab" id="projectsTab" style="display: none;">
+                <h2>Projects Showcase</h2>
+                <!-- Projects will load here -->
+            </div>
+
+            <div class="loading" id="loadingState" style="display: none;">
+                <div class="spinner"></div>
+                <p>Finding perfect matches...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-window">
+            <div class="chat-header">
+                <h3 id="chatPartnerName">Chat with Collaborator</h3>
+                <button class="close-chat" id="closeChatBtn">×</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will appear here -->
+            </div>
+            <div class="chat-input-area">
+                <textarea class="chat-input" id="chatInput" placeholder="Type your message..." rows="2"></textarea>
+                <button class="ai-match-btn" id="sendMessageBtn" style="margin-top: 10px;">Send Message</button>
+            </div>
+        </div>
+    </div>  
+    <script src="iframe.js" type="module"></script>
+    <script src="document.js" type="module"></script>
+</body>
+</html>
