@@ -1,0 +1,26 @@
+  // config.js
+export const config = {
+    // Adobe Express Add-on Configuration
+    clientId: 'a7628635e14e4bd0a5e0fdafb0bd7869', // Your Client ID
+    pluginId: 'w77hj1l34', // Your Plugin ID
+    
+    // API Configuration 
+    apiBaseUrl: 'https://your-api-domain.com/api',
+    
+    // Environment settings
+    environment: 'development', // 'development' or 'production'
+    
+    // Feature flags
+    features: {
+        aiMatching: true,
+        realTimeChat: true,
+        collaboratorInvites: true
+    }
+};
+
+ 
+if (config.environment === 'development') {
+    config.apiBaseUrl = 'http://localhost:3000/api';
+}
+
+export default config;
