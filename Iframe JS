@@ -1,0 +1,329 @@
+  // iframe.js - UI Logic for CollabFinder Add-on
+
+const collaborators = [
+    { id: 1, name: "Sarah Chen", title: "UI/UX Designer", bio: "Passionate about creating intuitive user experiences.", skills: ["UI Design", "UX Research"], experience: "expert", availability: "immediate", avatar: "SC", matchScore: 95 },
+    { id: 2, name: "Alex Rodriguez", title: "Brand Designer", bio: "Creative brand strategist with 5+ years experience.", skills: ["Branding", "Logo Design"], experience: "intermediate", availability: "this-week", avatar: "AR", matchScore: 88 },
+    { id: 3, name: "Maya Patel", title: "Illustrator", bio: "Digital illustrator specializing in character design.", skills: ["Illustration", "Character Design"], experience: "expert", availability: "flexible", avatar: "MP", matchScore: 92 },
+    { id: 4, name: "Tom Wilson", title: "Copywriter", bio: "Creative copywriter with expertise in marketing campaigns.", skills: ["Copywriting", "Content Strategy"], experience: "intermediate", availability: "immediate", avatar: "TW", matchScore: 85 },
+    { id: 5, name: "Lisa Zhang", title: "Motion Designer", bio: "Animation and motion graphics specialist.", skills: ["Animation", "Motion Graphics"], experience: "expert", availability: "this-week", avatar: "LZ", matchScore: 90 },
+    { id: 6, name: "David Kim", title: "Photographer", bio: "Commercial photographer with focus on product photography.", skills: ["Photography", "Photo Editing"], experience: "intermediate", availability: "flexible", avatar: "DK", matchScore: 78 }
+];
+
+let currentCollaborators = [...collaborators];
+let selectedSkills = [];
+
+// Initialize iframe UI
+function initializeIframeUI() {
+    console.log('Initializing iframe UI');
+    renderCollaborators();
+    setupEventListeners();
+    
+    // Send ready message to document
+    if (window.parent && window.parent.postMessage) {
+        window.parent.postMessage({ type: 'iframe_ready' }, '*');
+    }
+}
+
+// Setup all event listeners for UI interactions
+function setupEventListeners() {
+    const searchInput = document.getElementById('searchInput');
+    const skillFilter = document.getElementById('skillFilter');
+    const experienceFilter = document.getElementById('experienceFilter');
+    const availabilityFilter = document.getElementById('availabilityFilter');
+    const aiMatchBtn = document.getElementById('aiMatchBtn');
+    const closeChatBtn = document.getElementById('closeChatBtn');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const chatInput = document.getElementById('chatInput');
+    
+    // Add null checks before adding event listeners
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+    }
+    if (skillFilter) {
+        skillFilter.addEventListener('change', handleFilters);
+    }
+    if (experienceFilter) {
+        experienceFilter.addEventListener('change', handleFilters);
+    }
+    if (availabilityFilter) {
+        availabilityFilter.addEventListener('change', handleFilters);
+    }
+    if (aiMatchBtn) {
+        aiMatchBtn.addEventListener('click', handleAIMatch);
+    }
+    if (closeChatBtn) {
+        closeChatBtn.addEventListener('click', closeChatModal);
+    }
+    if (sendMessageBtn) {
+        sendMessageBtn.addEventListener('click', sendMessage);
+    }
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                sendMessage(); 
+            }
+        });
+    }
+    
+    // Setup skill tag listeners (will be called after rendering)
+    setupSkillTagListeners();
+    
+    // Setup view button listeners
+    setupViewButtonListeners();
+    
+    // Listen for messages from document
+    window.addEventListener('message', handleMessageFromDocument);
+}
+
+// Handle messages from document.js
+function handleMessageFromDocument(event) {
+    if (event.data.type === 'document_ready') {
+        console.log('Document is ready');
+    } else if (event.data.type === 'collaborator_invited') {
+        console.log('Collaborator invitation processed:', event.data.collaborator);
+    }
+}
+
+// Send message to document.js
+function sendMessageToDocument(type, data) {
+    if (window.parent && window.parent.postMessage) {
+        window.parent.postMessage({ type, data }, '*');
+    }
+}
+
+function setupSkillTagListeners() {
+    document.querySelectorAll('.skill-tag').forEach(tag => {
+        tag.addEventListener('click', handleSkillTagClick);
+    });
+}
+
+function setupViewButtonListeners() {
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', toggleView);
+    });
+}
+
+function renderCollaborators() {
+    const grid = document.getElementById('collaboratorsGrid');
+    if (!grid) {
+        console.error('collaboratorsGrid element not found');
+        return;
+    }
+    
+    grid.innerHTML = '';
+    currentCollaborators.forEach(collaborator => {
+        const card = createCollaboratorCard(collaborator);
+        grid.appendChild(card);
+    });
+    
+    // Re-setup skill tag listeners after rendering
+    setupSkillTagListeners();
+}
+
+function createCollaboratorCard(collaborator) {
+    const card = document.createElement('div');
+    card.className = 'collaborator-card';
+    card.innerHTML = `
+        <div class="match-score">${collaborator.matchScore}% Match</div>
+        <div class="collaborator-avatar">${collaborator.avatar}</div>
+        <div class="collaborator-name">${collaborator.name}</div>
+        <div class="collaborator-title">${collaborator.title}</div>
+        <div class="collaborator-bio">${collaborator.bio}</div>
+        <div class="collaborator-skills">${collaborator.skills.map(skill => `<div class="skill-tag" data-skill="${skill.toLowerCase().replace(/\s+/g, '-')}">${skill}</div>`).join('')}</div>
+        <div class="collaborator-actions">
+            <button class="action-btn chat-btn" onclick="openChat(${collaborator.id})">💬 Chat</button>
+            <button class="action-btn invite-btn" onclick="inviteCollaborator(${collaborator.id})">🤝 Invite</button>
+        </div>
+    `;
+    return card;
+}
+
+function handleSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+    
+    const searchTerm = searchInput.value.toLowerCase();
+    currentCollaborators = collaborators.filter(collaborator =>
+        collaborator.name.toLowerCase().includes(searchTerm) ||
+        collaborator.title.toLowerCase().includes(searchTerm) ||
+        collaborator.bio.toLowerCase().includes(searchTerm) ||
+        collaborator.skills.some(skill => skill.toLowerCase().includes(searchTerm))
+    );
+    renderCollaborators();
+}
+
+function handleFilters() {
+    const skillFilter = document.getElementById('skillFilter');
+    const experienceFilter = document.getElementById('experienceFilter');
+    const availabilityFilter = document.getElementById('availabilityFilter');
+    
+    const skillFilterValue = skillFilter ? skillFilter.value : '';
+    const experienceFilterValue = experienceFilter ? experienceFilter.value : '';
+    const availabilityFilterValue = availabilityFilter ? availabilityFilter.value : '';
+    
+    currentCollaborators = collaborators.filter(collaborator => {
+        const matchesSkill = !skillFilterValue || collaborator.skills.some(skill => 
+            skill.toLowerCase().includes(skillFilterValue.replace('-', ' '))
+        );
+        const matchesExperience = !experienceFilterValue || collaborator.experience === experienceFilterValue;
+        const matchesAvailability = !availabilityFilterValue || collaborator.availability === availabilityFilterValue;
+        return matchesSkill && matchesExperience && matchesAvailability;
+    });
+    renderCollaborators();
+}
+
+function handleSkillTagClick(event) {
+    const skill = event.target.dataset.skill;
+    if (!skill) return;
+    
+    if (selectedSkills.includes(skill)) {
+        selectedSkills = selectedSkills.filter(s => s !== skill);
+        event.target.classList.remove('selected');
+    } else {
+        selectedSkills.push(skill);
+        event.target.classList.add('selected');
+    }
+    filterBySelectedSkills();
+}
+
+function filterBySelectedSkills() {
+    if (selectedSkills.length === 0) {
+        currentCollaborators = [...collaborators];
+    } else {
+        currentCollaborators = collaborators.filter(collaborator => 
+            selectedSkills.some(skill => 
+                collaborator.skills.some(collabSkill => 
+                    collabSkill.toLowerCase().includes(skill.replace('-', ' '))
+                )
+            )
+        );
+    }
+    renderCollaborators();
+}
+
+function handleAIMatch() {
+    const loadingState = document.getElementById('loadingState');
+    const grid = document.getElementById('collaboratorsGrid');
+    if (!loadingState || !grid) {
+        console.error('Required elements not found for AI match');
+        return;
+    }
+    grid.style.display = 'none';
+    loadingState.style.display = 'block';
+    setTimeout(() => {
+        currentCollaborators = [...collaborators].sort((a, b) => {
+            const skillMatchA = selectedSkills.some(skill => a.skills.some(s => s.toLowerCase().includes(skill)));
+            const skillMatchB = selectedSkills.some(skill => b.skills.some(s => s.toLowerCase().includes(skill)));
+            return (skillMatchB ? 1 : 0) - (skillMatchA ? 1 : 0) || b.matchScore - a.matchScore;
+        });
+        loadingState.style.display = 'none';
+        grid.style.display = 'grid';
+        renderCollaborators();
+    }, 2000);
+}
+
+function openChat(collaboratorId) {
+    const collaborator = collaborators.find(c => c.id === collaboratorId);
+    if (!collaborator) {
+        console.error('Collaborator not found');
+        return;
+    }
+    
+    const chatPartnerName = document.getElementById('chatPartnerName');
+    const chatModal = document.getElementById('chatModal');
+    const chatMessages = document.getElementById('chatMessages');
+    
+    if (!chatPartnerName || !chatModal || !chatMessages) {
+        console.error('Chat elements not found');
+        return;
+    }
+    
+    chatPartnerName.textContent = `Chat with ${collaborator.name}`;
+    chatModal.style.display = 'flex';
+    
+    chatMessages.innerHTML = `
+        <div class="message received"><p>Hi! Interested in collaborating. What project are you working on?</p></div>
+        <div class="message sent"><p>Hi ${collaborator.name}! I need help with UI design for a mobile app.</p></div>
+    `;
+}
+
+function closeChatModal() {
+    const chatModal = document.getElementById('chatModal');
+    if (chatModal) {
+        chatModal.style.display = 'none';
+    }
+}
+
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const chatMessages = document.getElementById('chatMessages');
+    
+    if (!input || !chatMessages) {
+        console.error('Chat input or messages element not found');
+        return;
+    }
+    
+    const message = input.value.trim();
+    if (message) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message sent';
+        messageElement.innerHTML = `<p>${message}</p>`;
+        chatMessages.appendChild(messageElement);
+        input.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Simulate response
+        setTimeout(() => {
+            const responseElement = document.createElement('div');
+            responseElement.className = 'message received';
+            responseElement.innerHTML = `<p>Thanks! I'll follow up soon.</p>`;
+            chatMessages.appendChild(responseElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 1000);
+    }
+}
+
+function inviteCollaborator(collaboratorId) {
+    const collaborator = collaborators.find(c => c.id === collaboratorId);
+    if (!collaborator) {
+        console.error('Collaborator not found');
+        return;
+    }
+    
+    // Send invitation data to document.js for processing
+    sendMessageToDocument('invite_collaborator', {
+        collaborator: collaborator,
+        timestamp: new Date().toISOString()
+    });
+    
+    alert(`🎉 Invitation sent to ${collaborator.name}!\n\nThey'll join your Express project soon.`);
+    console.log(`Inviting ${collaborator.name} to Adobe Express project`);
+}
+
+function toggleView(event) {
+    const buttons = document.querySelectorAll('.view-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    // Add view toggle logic here if needed
+}
+
+function showProjectsTab() {
+    const projectsTab = document.getElementById('projectsTab');
+    if (projectsTab) {
+        projectsTab.style.display = 'block';
+        projectsTab.innerHTML = '<h2>Projects Showcase</h2>' + currentCollaborators.map(c => `<div class="project-card">Project by ${c.name}</div>`).join('');
+    }
+}
+
+// Make functions globally accessible for onclick handlers
+window.openChat = openChat;
+window.inviteCollaborator = inviteCollaborator;
+window.showProjectsTab = showProjectsTab;
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeIframeUI);
+} else {
+    initializeIframeUI();
+}
