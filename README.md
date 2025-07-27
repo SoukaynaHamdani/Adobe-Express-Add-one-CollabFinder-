@@ -11,4 +11,4 @@ CollabFinder is an Adobe Express add-on designed to connect creatives with colla
 - **Collaborator Invites**: Invite collaborators to join your Adobe Express project.
 - **Grid/List View**: Toggle between grid and list views for collaborator profiles.
 
-You can run it by adding the HTML, CSS, iframe.js, and document.js files to the official Adobe Express add-ons code playground. or running the full code for testing   
+You can run it by adding the HTML, CSS, iframe.js, and document.js files to the official Adobe Express add-ons code playground. or by testing it directly by running the full merged code.
